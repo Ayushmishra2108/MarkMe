@@ -28,6 +28,7 @@
     "firebase-admin": "^13.5.0",
     "jsqr": "^1.4.0",
     "qrcode.react": "^4.2.0",
+    "sharp": "^0.34.4",
     "zod": "^3.25.76"
   },
   "devDependencies": {
