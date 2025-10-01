@@ -1,0 +1,136 @@
+@layer utilities {
+  @keyframes scanline {
+    0% { top: 0; }
+    100% { top: 90%; }
+  }
+  .animate-scanline {
+    animation: scanline 1.5s linear infinite;
+  }
+}
+/** @import must precede all other statements */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /**
+   * Tailwind CSS theme
+   * Colors are expressed as HSL triples to match tailwind.config.ts usage with hsl(var(--token)).
+  */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Brand: teal-indigo to blue-purple gradient */
+    --brand-start: 200 95% 45%; /* teal/blue */
+    --brand-end: 265 85% 60%; /* indigo/violet */
+
+    --primary: 245 85% 60%; /* indigo */
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 220 22% 95%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 220 22% 95%;
+    --muted-foreground: 221 15% 45%;
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 245 85% 60%;
+
+    --radius: 1rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 6% 26%;
+    --sidebar-primary: 245 85% 60%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 6% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .dark {
+    --background: 222 84% 5%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 84% 6%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 84% 6%;
+    --popover-foreground: 210 40% 98%;
+
+    --brand-start: 210 100% 50%;
+    --brand-end: 270 91% 63%;
+
+    --primary: 210 100% 66%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 222 32% 18%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 222 32% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 222 32% 18%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 32% 20%;
+    --input: 222 32% 20%;
+    --ring: 217 91% 60%;
+
+    --sidebar-background: 240 6% 10%;
+    --sidebar-foreground: 240 5% 96%;
+    --sidebar-primary: 224 76% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 240 5% 96%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 217 91% 60%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground antialiased; }
+}
+
+@layer utilities {
+  .bg-app-gradient {
+    background-image: linear-gradient(135deg, hsl(var(--brand-start)) 0%, hsl(var(--brand-end)) 100%);
+  }
+  .glass {
+    @apply bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-lg;
+  }
+  .card-glass {
+    @apply glass rounded-2xl;
+  }
+  .hover-rise { @apply transition-transform duration-300 will-change-transform; }
+  .hover-rise:hover { transform: translateY(-4px); }
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--brand-start)), hsl(var(--brand-end)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .btn-gradient {
+    background: linear-gradient(135deg, hsl(var(--brand-start)), hsl(var(--brand-end)));
+  }
+}

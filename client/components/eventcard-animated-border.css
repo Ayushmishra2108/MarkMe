@@ -1,0 +1,30 @@
+/* Animated blue border for EventCard */
+@keyframes border-move {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.eventcard-animated-border {
+  position: relative;
+  z-index: 0;
+}
+.eventcard-animated-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 1rem;
+  pointer-events: none;
+  border: 2.5px solid transparent;
+  background: linear-gradient(270deg, #3b82f6, #06b6d4, #6366f1, #3b82f6) border-box;
+  background-size: 200% 200%;
+  animation: border-move 2s linear infinite;
+  mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+}
