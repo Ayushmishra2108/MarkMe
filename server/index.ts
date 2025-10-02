@@ -4,7 +4,9 @@ import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { registerMember, updateUserRoleTeam } from "./routes/admin-users";
 import { seedFirstAdmin } from "./routes/seed-admin";
+
 import { createTeam, listTeams } from "./routes/admin-teams";
+import { listPastEvents } from "./routes/list-past-events";
 
 export function createServer() {
   const app = express();
@@ -21,6 +23,9 @@ export function createServer() {
   });
 
   app.get("/api/demo", handleDemo);
+
+  // Events API
+  app.get("/api/events/past", listPastEvents);
 
   // Admin management routes
   app.post("/api/admin/users", registerMember);

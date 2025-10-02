@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { getAdminDb } from "../firebase-admin";
+const { getAdminDb } = require("../firebase-admin");
 
 export const createTeam: RequestHandler = async (req, res) => {
   const db = getAdminDb();

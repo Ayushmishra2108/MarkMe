@@ -2,8 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ScanLine } from "lucide-react";
 import EventCard, { EventItem } from "@/components/EventCard";
 import { useEffect, useState } from "react";
-import { db } from "@/services/firebase";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+
 
 export default function Home() {
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -31,48 +30,30 @@ export default function Home() {
   }
 
   useEffect(() => {
-    async function fetchDataAndUpdateStatus() {
-      const eventsSnap = await getDocs(collection(db, "events"));
-      const eventDocs = eventsSnap.docs.map((doc) => {
-        const d = doc.data();
-        return {
-          id: d.id || doc.id,
-          title: d.title || d.name || "Untitled",
-          description: d.description || "",
-          date: d.date || "",
-          time: d.time || "",
-          startTime: d.startTime,
-          endTime: d.endTime,
-          status: d.status || "Active",
-        };
-      });
-      // Compute statusLabel for each event
-      const nowDate = new Date();
-      for (const e of eventDocs) {
-        const start = getLocalDate(e.date, e.startTime || e.time, "00:00");
-        let end = null;
-        if (e.endTime) {
-          end = getLocalDate(e.date, e.endTime, "23:59");
-        } else if (e.startTime || e.time) {
-          const s = getLocalDate(e.date, e.startTime || e.time, "00:00");
-          end = s ? new Date(s.getTime() + 60 * 60 * 1000) : null;
-        } else {
-          end = getLocalDate(e.date, "23:59", "23:59");
+    async function fetchPastEvents() {
+      try {
+        const res = await fetch("/api/events/past");
+        const data = await res.json();
+        if (Array.isArray(data.events)) {
+          // Map backend Event to EventItem for UI
+          setEvents(
+            data.events.map((e: any) => ({
+              id: e.id,
+              title: e.name,
+              description: e.description || "",
+              date: e.startAt ? e.startAt.slice(0, 10) : "",
+              time: e.startAt ? e.startAt.slice(11, 16) : "",
+              startTime: e.startAt ? e.startAt.slice(11, 16) : "",
+              endTime: e.endAt ? e.endAt.slice(11, 16) : undefined,
+              status: e.status || "Active",
+            }))
+          );
         }
-        let statusLabel = "Upcoming";
-        if (!start || !end) statusLabel = "Upcoming";
-        else if (nowDate < start) statusLabel = "Upcoming";
-        else if (nowDate >= start && nowDate < end) statusLabel = "Live";
-        else if (nowDate >= end) statusLabel = "Expired";
-        // Update status in Firestore if changed
-        if (e.status !== statusLabel) {
-          const eventRef = doc(db, "events", e.id);
-          await updateDoc(eventRef, { status: statusLabel });
-        }
+      } catch (e) {
+        setEvents([]);
       }
-      setEvents(eventDocs);
     }
-    fetchDataAndUpdateStatus();
+    fetchPastEvents();
   }, []);
 
   const categorizedEvents = events

@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-import { getAdminAuth, getAdminDb } from "../firebase-admin";
+const { getAdminAuth, getAdminDb } = require("../firebase-admin");
 import admin from "firebase-admin";
 
 // Middleware-like helper to check admin is configured
