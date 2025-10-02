@@ -1,17 +1,15 @@
-# CORRECT AND FINAL netlify.toml
-
 [build]
-  command = "pnpm build"
-  publish = "client/dist"
+  command = "npm run build:client"
+  functions = "netlify/functions"
+  publish = "dist/spa"
 
-# All function settings are now combined into ONE section
+
 [functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
   external_node_modules = ["express"]
-
+  node_bundler = "esbuild"
+  
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
-  status = 200
   force = true
+  from = "/api/*"
+  status = 200
+  to = "/.netlify/functions/api/:splat"
