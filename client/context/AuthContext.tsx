@@ -38,7 +38,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       let claimsRole: UserRole | undefined;
       try {
-        const token = await getIdTokenResult(firebaseUser, true);
+        // Force-refresh the ID token to get latest custom claims
+        await firebaseUser.getIdToken(true);
+        const token = await getIdTokenResult(firebaseUser);
         claimsRole = (token.claims as any)?.role as UserRole | undefined;
       } catch {}
 

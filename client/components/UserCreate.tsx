@@ -119,12 +119,7 @@ const UserCreate: React.FC<UserCreateProps> = ({ disabled, onRegistered }) => {
     const id = form.uniqueId;
     // Call backend API to create user in Auth and Firestore
     try {
-      // Use Netlify function path in production, /api in dev
-      const apiUrl =
-        window.location.hostname.includes("netlify.app") || window.location.hostname === "markme.netlify.app"
-          ? "/.netlify/functions/api/admin/users"
-          : "/api/admin/users";
-      const res = await fetch(apiUrl, {
+  const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, password }),
@@ -132,8 +127,8 @@ const UserCreate: React.FC<UserCreateProps> = ({ disabled, onRegistered }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create member");
       setGeneratedId(data.uniqueId || id);
-      setShowDialog(true);
-      if (onRegistered) onRegistered();
+  setShowDialog(true);
+  if (onRegistered) onRegistered();
     } catch (err: any) {
       alert("Failed to create member: " + err.message);
     }

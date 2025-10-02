@@ -1,31 +1,22 @@
 import admin from "firebase-admin";
 
 function init() {
-  const svc = process.env.FIREBASE_SERVICE_ACCOUNT;
-  if (!svc) {
-    console.error("[FIREBASE_ADMIN] Missing FIREBASE_SERVICE_ACCOUNT env variable");
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  if (!projectId || !privateKey || !clientEmail) {
     return null as any;
   }
-  try {
-    if (admin.apps.length === 0) {
-      let parsed;
-      try {
-        parsed = JSON.parse(svc);
-      } catch (err) {
-        console.error("[FIREBASE_ADMIN] Failed to parse FIREBASE_SERVICE_ACCOUNT:", err, svc);
-        throw err;
-      }
-      admin.initializeApp({
-        credential: admin.credential.cert(parsed),
-        projectId: parsed.project_id,
-      });
-      console.log("[FIREBASE_ADMIN] Initialized Firebase Admin SDK");
-    }
-    return admin.app();
-  } catch (err) {
-    console.error("[FIREBASE_ADMIN] Error initializing Firebase Admin:", err);
-    return null as any;
+  if (admin.apps.length === 0) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId,
+        privateKey,
+        clientEmail,
+      }),
+    });
   }
+  return admin.app();
 }
 
 export function getAdminAuth() {

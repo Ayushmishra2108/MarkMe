@@ -1,5 +1,36 @@
+// Utility: Remove orphaned UIDs from a team's members array
+import { Request, Response } from "express";
+export const cleanTeamMembers: RequestHandler = async (req: Request, res: Response) => {
+  const check = requireAdminConfigured();
+  if (!check.ok) return res.status(501).json({ error: check.message });
+  const { db } = check;
+  const { teamName } = req.body;
+  if (!teamName) return res.status(400).json({ error: "teamName required" });
+  const teamRef = db.collection("teams").doc(teamName);
+  const teamSnap = await teamRef.get();
+  if (!teamSnap.exists) return res.status(404).json({ error: "Team not found" });
+  const teamData = teamSnap.data();
+  let members: string[] = Array.isArray(teamData.members) ? teamData.members : [];
+  // Fetch all users
+  const usersSnap = await db.collection("users").get();
+  const validUids = new Set();
+  usersSnap.forEach(doc => {
+    const data = doc.data();
+    // Consider valid only if name and email are present and non-empty
+    if (typeof data.name === "string" && data.name.trim() && typeof data.email === "string" && data.email.trim()) {
+      validUids.add(doc.id);
+    }
+  });
+  const cleanedMembers = members.filter(uid => validUids.has(uid));
+  if (cleanedMembers.length !== members.length) {
+    await teamRef.set({ members: cleanedMembers, updatedAt: Date.now() }, { merge: true });
+    return res.json({ ok: true, removed: members.length - cleanedMembers.length, cleanedMembers });
+  } else {
+    return res.json({ ok: true, removed: 0, cleanedMembers });
+  }
+};
 import { RequestHandler } from "express";
-const { getAdminAuth, getAdminDb } = require("../firebase-admin");
+import { getAdminAuth, getAdminDb } from "../firebase-admin";
 import admin from "firebase-admin";
 
 // Middleware-like helper to check admin is configured
@@ -15,7 +46,7 @@ export const registerMember: RequestHandler = async (req, res) => {
   if (!check.ok) return res.status(501).json({ error: check.message });
   const { auth, db } = check;
 
-  const { name, className, rollNo, teamName, position, role, uniqueId, password, email, year, phone } = req.body as {
+  const { name, className, rollNo, teamName, position, role: reqRole, uniqueId, password, email, year, phone } = req.body as {
     name: string;
     className?: string;
     rollNo?: string;
@@ -39,10 +70,27 @@ export const registerMember: RequestHandler = async (req, res) => {
   // Use provided email for login if available, otherwise fallback to uniqueId-based email alias
   const loginEmail = email && email.trim().length > 0 ? email.trim() : `${id}@attendance.local`;
 
+  // Determine admin eligibility
+  let isCoreAdmin = false;
+  if (
+    teamName &&
+    typeof teamName === "string" &&
+    ["core team", "core", "coreteam"].includes(teamName.trim().toLowerCase()) &&
+    position &&
+    typeof position === "string" &&
+    ["head", "executive"].includes(position.trim().toLowerCase())
+  ) {
+    isCoreAdmin = true;
+  }
+  // Final role to assign
+  const finalRole = isCoreAdmin ? "admin" : (reqRole || "member");
+
   try {
     const userRecord = await auth.createUser({ email: loginEmail, password: pwd, displayName: name });
-    if (role === "admin") {
+    if (finalRole === "admin") {
       await auth.setCustomUserClaims(userRecord.uid, { role: "admin" });
+      // Mark claims update in Firestore for frontend polling
+      await db.collection("users").doc(userRecord.uid).set({ claimsUpdatedAt: Date.now() }, { merge: true });
     }
 
     await db.collection("users").doc(userRecord.uid).set({
@@ -51,7 +99,7 @@ export const registerMember: RequestHandler = async (req, res) => {
       className: className || null,
       rollNo: rollNo || null,
       teamName: teamName || null,
-      role: role || "member",
+      role: finalRole,
       position: position || null,
       uniqueId: id,
       email: email || null,
@@ -89,15 +137,7 @@ export const registerMember: RequestHandler = async (req, res) => {
 
     res.json({ uid: userRecord.uid, uniqueId: id, password: pwd, message: "Member registered successfully" });
   } catch (e: any) {
-    // Enhanced error logging for Netlify debugging
-    console.error("Failed to create member:", e);
-    let errorMsg = "Failed to create member";
-    if (e && typeof e === "object") {
-      if (e.message) errorMsg += ": " + e.message;
-      else if (e.errorInfo && e.errorInfo.message) errorMsg += ": " + e.errorInfo.message;
-      else errorMsg += ": " + JSON.stringify(e);
-    }
-    res.status(500).json({ error: errorMsg });
+    res.status(500).json({ error: e?.message || "Failed to register member" });
   }
 };
 
@@ -106,7 +146,7 @@ export const updateUserRoleTeam: RequestHandler = async (req, res) => {
   if (!check.ok) return res.status(501).json({ error: check.message });
   const { auth, db } = check;
 
-  const { uid: bodyUid, email, role, teamName, uniqueId, newPassword } = req.body as { uid?: string; email?: string; role?: string; teamName?: string; uniqueId?: string; newPassword?: string };
+  const { uid: bodyUid, email, role: reqRole, teamName, uniqueId, newPassword, position } = req.body as { uid?: string; email?: string; role?: string; teamName?: string; uniqueId?: string; newPassword?: string; position?: string };
   try {
     let uid = bodyUid;
     if (!uid && email) {
@@ -123,12 +163,31 @@ export const updateUserRoleTeam: RequestHandler = async (req, res) => {
     const updates: Record<string, any> = {};
     if (typeof teamName !== "undefined") updates.teamName = teamName;
     if (typeof uniqueId !== "undefined") updates.uniqueId = uniqueId;
+    if (typeof position !== "undefined") updates.position = position;
+    // Determine admin eligibility
+    let isCoreAdmin = false;
+    if (
+      teamName &&
+      typeof teamName === "string" &&
+      ["core team", "core", "coreteam"].includes(teamName.trim().toLowerCase()) &&
+      position &&
+      typeof position === "string" &&
+      ["head", "executive"].includes(position.trim().toLowerCase())
+    ) {
+      isCoreAdmin = true;
+    }
+    // Final role to assign
+    const finalRole = isCoreAdmin ? "admin" : (reqRole || current.role || "member");
+    updates.role = finalRole;
     if (Object.keys(updates).length) await userRef.set(updates, { merge: true });
 
-    if (role) {
-      await userRef.set({ role }, { merge: true });
-      if (role === "admin") await auth.setCustomUserClaims(uid, { role: "admin" });
-      else await auth.setCustomUserClaims(uid, { role: null });
+    // Set custom claims if role changed or admin eligibility changed
+    if (finalRole === "admin") {
+      await auth.setCustomUserClaims(uid, { role: "admin" });
+      await userRef.set({ claimsUpdatedAt: Date.now() }, { merge: true });
+    } else {
+      await auth.setCustomUserClaims(uid, { role: null });
+      await userRef.set({ claimsUpdatedAt: Date.now() }, { merge: true });
     }
 
     if (newPassword && newPassword.length >= 6) {

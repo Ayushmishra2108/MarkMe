@@ -1,5 +1,5 @@
 import { RequestHandler } from "express";
-const { getAdminAuth, getAdminDb } = require("../firebase-admin");
+import { getAdminAuth, getAdminDb } from "../firebase-admin";
 
 export const seedFirstAdmin: RequestHandler = async (req, res) => {
   const auth = getAdminAuth();
