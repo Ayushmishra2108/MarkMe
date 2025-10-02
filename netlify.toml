@@ -1,21 +1,17 @@
+# CORRECT AND FINAL netlify.toml
+
 [build]
   command = "pnpm build"
-  functions = "netlify/functions"
   publish = "client/dist"
 
-
+# All function settings are now combined into ONE section
 [functions]
-  external_node_modules = ["express"]
-  node_bundler = "esbuild"
-  
-[[redirects]]
-  force = true
-  from = "/api/*"
-  status = 200
-  to = "/.netlify/functions/api/:splat"
-# netlify.toml
-
-[functions]
-  # This tells Netlify where your functions are and to look
-  # for a package.json file inside this directory.
   directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["express"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
