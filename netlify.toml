@@ -1,7 +1,7 @@
 [build]
-  command = "npm run build:client"
+  command = "pnpm build"
   functions = "netlify/functions"
-  publish = "dist/spa"
+  publish = "client/dist"
 
 
 [functions]
