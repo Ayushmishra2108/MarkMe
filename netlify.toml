@@ -13,3 +13,9 @@
   from = "/api/*"
   status = 200
   to = "/.netlify/functions/api/:splat"
+# netlify.toml
+
+[functions]
+  # This tells Netlify where your functions are and to look
+  # for a package.json file inside this directory.
+  directory = "netlify/functions"
