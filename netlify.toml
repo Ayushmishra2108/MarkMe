@@ -1,15 +1,14 @@
 [build]
-  command = "npm run build:client"
-  functions = "netlify/functions"
-  publish = "dist/spa"
-
+  command = "pnpm build"
+  # Make sure this publish directory is correct for your project
+  publish = "client/dist" 
 
 [functions]
-  external_node_modules = ["express"]
+  directory = "netlify/functions"
+  # This tells Netlify to use the esbuild bundler
   node_bundler = "esbuild"
-  
-[[redirects]]
-  force = true
-  from = "/api/*"
-  status = 200
-  to = "/.netlify/functions/api/:splat"
+
+  # THIS IS THE CRUCIAL FIX:
+  # It tells the bundler to NOT bundle these packages.
+  # They will be installed normally in node_modules on the server.
+  external_node_modules = ["express", "firebase-admin"]
