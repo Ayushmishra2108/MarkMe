@@ -1,14 +1,16 @@
 [build]
-  command = "pnpm build"
-  # Make sure this publish directory is correct for your project
-  publish = "client/dist" 
+  command = "npm run build:client"
+  publish = "dist/spa"
+  # The functions directory is now defined below
 
+# All function settings are combined into ONE section
 [functions]
   directory = "netlify/functions"
-  # This tells Netlify to use the esbuild bundler
   node_bundler = "esbuild"
-
-  # THIS IS THE CRUCIAL FIX:
-  # It tells the bundler to NOT bundle these packages.
-  # They will be installed normally in node_modules on the server.
   external_node_modules = ["express", "firebase-admin"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
