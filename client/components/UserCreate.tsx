@@ -119,7 +119,7 @@ const UserCreate: React.FC<UserCreateProps> = ({ disabled, onRegistered }) => {
     const id = form.uniqueId;
     // Call backend API to create user in Auth and Firestore
     try {
-  const res = await fetch("/.netlify/functions/api/api/admin/users", {
+  const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, password }),
