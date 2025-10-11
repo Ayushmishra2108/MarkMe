@@ -8,7 +8,13 @@
   external_node_modules = ["express", "firebase-admin", "firebase", "cors", "dotenv"]
 
 [[redirects]]
+  from = "/test"
+  to = "/.netlify/functions/test"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  to = "/.netlify/functions/api-simple/:splat"
   status = 200
   force = true
