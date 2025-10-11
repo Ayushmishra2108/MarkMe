@@ -42,8 +42,13 @@ function requireAdminConfigured() {
 }
 
 export const registerMember: RequestHandler = async (req, res) => {
+  console.log("Register member request received:", { body: req.body });
+  
   const check = requireAdminConfigured();
-  if (!check.ok) return res.status(501).json({ error: check.message });
+  if (!check.ok) {
+    console.error("Admin not configured:", check.message);
+    return res.status(501).json({ error: check.message });
+  }
   const { auth, db } = check;
 
   const { name, className, rollNo, teamName, position, role: reqRole, uniqueId, password, email, year, phone } = req.body as {
@@ -135,8 +140,10 @@ export const registerMember: RequestHandler = async (req, res) => {
       );
     }
 
+    console.log("Member registered successfully:", { uid: userRecord.uid, uniqueId: id });
     res.json({ uid: userRecord.uid, uniqueId: id, password: pwd, message: "Member registered successfully" });
   } catch (e: any) {
+    console.error("Failed to register member:", e);
     res.status(500).json({ error: e?.message || "Failed to register member" });
   }
 };
@@ -241,3 +248,91 @@ function generatePassword() {
   for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
   return out;
 }
+
+// Get individual user by UID
+export const getUserById: RequestHandler = async (req, res) => {
+  const check = requireAdminConfigured();
+  if (!check.ok) return res.status(501).json({ error: check.message });
+  const { db } = check;
+
+  const { uid } = req.params;
+  if (!uid) return res.status(400).json({ error: "uid is required" });
+
+  try {
+    const userDoc = await db.collection("users").doc(uid).get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const userData = userDoc.data();
+    res.json(userData);
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || "Failed to fetch user" });
+  }
+};
+
+// Update individual user by UID
+export const updateUserById: RequestHandler = async (req, res) => {
+  const check = requireAdminConfigured();
+  if (!check.ok) return res.status(501).json({ error: check.message });
+  const { auth, db } = check;
+
+  const { uid } = req.params;
+  if (!uid) return res.status(400).json({ error: "uid is required" });
+
+  const { name, className, rollNo, teamName, position, uniqueId, email, year, phone } = req.body;
+
+  try {
+    const userRef = db.collection("users").doc(uid);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const currentData = userDoc.data();
+    const updates: Record<string, any> = {};
+    
+    if (name !== undefined) updates.name = name;
+    if (className !== undefined) updates.className = className;
+    if (rollNo !== undefined) updates.rollNo = rollNo;
+    if (teamName !== undefined) updates.teamName = teamName;
+    if (position !== undefined) updates.position = position;
+    if (uniqueId !== undefined) updates.uniqueId = uniqueId;
+    if (email !== undefined) updates.email = email;
+    if (year !== undefined) updates.year = year;
+    if (phone !== undefined) updates.phone = phone;
+
+    // Determine admin eligibility
+    let isCoreAdmin = false;
+    if (
+      teamName &&
+      typeof teamName === "string" &&
+      ["core team", "core", "coreteam"].includes(teamName.trim().toLowerCase()) &&
+      position &&
+      typeof position === "string" &&
+      ["head", "executive"].includes(position.trim().toLowerCase())
+    ) {
+      isCoreAdmin = true;
+    }
+
+    // Update role if needed
+    const finalRole = isCoreAdmin ? "admin" : (currentData?.role || "member");
+    updates.role = finalRole;
+
+    if (Object.keys(updates).length > 0) {
+      await userRef.set(updates, { merge: true });
+    }
+
+    // Set custom claims if role changed
+    if (finalRole === "admin") {
+      await auth.setCustomUserClaims(uid, { role: "admin" });
+      await userRef.set({ claimsUpdatedAt: Date.now() }, { merge: true });
+    } else {
+      await auth.setCustomUserClaims(uid, { role: null });
+      await userRef.set({ claimsUpdatedAt: Date.now() }, { merge: true });
+    }
+
+    res.json({ ok: true, uid, message: "User updated successfully" });
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || "Failed to update user" });
+  }
+};

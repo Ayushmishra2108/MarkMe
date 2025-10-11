@@ -34,10 +34,8 @@ export default function Admin() {
         status: 'Active',
         createdAt: Date.now(),
       };
-      // @ts-ignore
       const { db } = await import("@/services/firebase");
       // Add to Firestore
-      // @ts-ignore
       const { collection, addDoc } = await import("firebase/firestore");
       await addDoc(collection(db, "events"), eventData);
       setShowEventDialog(false);

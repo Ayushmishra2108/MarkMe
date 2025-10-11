@@ -1,13 +1,11 @@
 [build]
-  command = "npm run build:client"
+  command = "npm run build"
   publish = "dist/spa"
-  # The functions directory is now defined below
+  functions = "netlify/functions"
 
-# All function settings are combined into ONE section
 [functions]
-  directory = "netlify/functions"
   node_bundler = "esbuild"
-  external_node_modules = ["express", "firebase-admin"]
+  external_node_modules = ["express", "firebase-admin", "firebase", "cors", "dotenv"]
 
 [[redirects]]
   from = "/api/*"

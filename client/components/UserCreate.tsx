@@ -119,17 +119,30 @@ const UserCreate: React.FC<UserCreateProps> = ({ disabled, onRegistered }) => {
     const id = form.uniqueId;
     // Call backend API to create user in Auth and Firestore
     try {
-  const res = await fetch("/api/admin/users", {
+      console.log("Submitting user data:", { ...form, password: "[REDACTED]" });
+      
+      const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, password }),
       });
+      
+      console.log("Response status:", res.status);
+      console.log("Response headers:", Object.fromEntries(res.headers.entries()));
+      
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create member");
+      console.log("Response data:", data);
+      
+      if (!res.ok) {
+        console.error("API Error:", data);
+        throw new Error(data.error || `HTTP ${res.status}: Failed to create member`);
+      }
+      
       setGeneratedId(data.uniqueId || id);
-  setShowDialog(true);
-  if (onRegistered) onRegistered();
+      setShowDialog(true);
+      if (onRegistered) onRegistered();
     } catch (err: any) {
+      console.error("User creation error:", err);
       alert("Failed to create member: " + err.message);
     }
   };

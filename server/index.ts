@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
-import { registerMember, updateUserRoleTeam, cleanTeamMembers } from "./routes/admin-users";
+import { registerMember, updateUserRoleTeam, cleanTeamMembers, getUserById, updateUserById } from "./routes/admin-users";
 import { seedFirstAdmin } from "./routes/seed-admin";
 import { createTeam, listTeams } from "./routes/admin-teams";
 
@@ -20,11 +20,22 @@ export function createServer() {
     res.json({ message: ping });
   });
 
+  // Health check for Netlify functions
+  app.get("/api/health", (_req, res) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development"
+    });
+  });
+
   app.get("/api/demo", handleDemo);
 
   // Admin management routes
   app.post("/api/admin/users", registerMember);
   app.patch("/api/admin/users", updateUserRoleTeam);
+  app.get("/api/admin/users/:uid", getUserById);
+  app.put("/api/admin/users/:uid", updateUserById);
   app.post("/api/admin/seed", seedFirstAdmin);
   app.post("/api/admin/teams", createTeam);
   app.get("/api/admin/teams", listTeams);
