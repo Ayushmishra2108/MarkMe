@@ -121,6 +121,18 @@ const UserCreate: React.FC<UserCreateProps> = ({ disabled, onRegistered }) => {
     try {
       console.log("Submitting user data:", { ...form, password: "[REDACTED]" });
       
+      // First, test if the API is accessible
+      try {
+        const healthRes = await fetch("/api/health");
+        console.log("Health check status:", healthRes.status);
+        if (healthRes.ok) {
+          const healthData = await healthRes.json();
+          console.log("Health check response:", healthData);
+        }
+      } catch (healthErr) {
+        console.warn("Health check failed:", healthErr);
+      }
+      
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -129,6 +141,16 @@ const UserCreate: React.FC<UserCreateProps> = ({ disabled, onRegistered }) => {
       
       console.log("Response status:", res.status);
       console.log("Response headers:", Object.fromEntries(res.headers.entries()));
+      
+      // Check if response is HTML (error page) instead of JSON
+      const contentType = res.headers.get("content-type");
+      console.log("Content-Type:", contentType);
+      
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Non-JSON response received:", text.substring(0, 200));
+        throw new Error(`Server returned HTML instead of JSON. Status: ${res.status}. This usually means the API endpoint is not working.`);
+      }
       
       const data = await res.json();
       console.log("Response data:", data);
