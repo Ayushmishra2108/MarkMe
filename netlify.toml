@@ -1,20 +1,19 @@
 [build]
-  command = "npm run build"
+  command = "npm run build:client"
   publish = "dist/spa"
   functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["express", "firebase-admin", "firebase", "cors", "dotenv"]
 
 [[redirects]]
   from = "/test"
-  to = "/.netlify/functions/test"
+  to = "/.netlify/functions/basic"
   status = 200
   force = true
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api-simple/:splat"
+  to = "/.netlify/functions/basic"
   status = 200
   force = true
