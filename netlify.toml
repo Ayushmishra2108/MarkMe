@@ -10,10 +10,18 @@
   from = "/test"
   to = "/.netlify/functions/basic"
   status = 200
-  force = true
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/basic"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/users"
+  to = "/.netlify/functions/basic"
+  status = 200
 
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/basic"
   status = 200
-  force = true
