@@ -5,6 +5,14 @@
 
 [functions]
   node_bundler = "esbuild"
+  included_files = ["functions/**"]
+
+# Enable functions for this site
+[context.production]
+  functions = "functions"
+
+[context.deploy-preview]
+  functions = "functions"
 
 [[redirects]]
   from = "/test"
@@ -18,12 +26,12 @@
 
 [[redirects]]
   from = "/api/health"
-  to = "/.netlify/functions/basic"
+  to = "/api/health.html"
   status = 200
 
 [[redirects]]
   from = "/api/admin/users"
-  to = "/.netlify/functions/basic"
+  to = "/api/admin/users.html"
   status = 200
 
 [[redirects]]
