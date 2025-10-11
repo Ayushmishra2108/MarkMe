@@ -1,14 +1,19 @@
 [build]
   command = "npm run build:client"
   publish = "dist/spa"
-  functions = "netlify/functions"
+  functions = "functions"
 
 [functions]
   node_bundler = "esbuild"
 
 [[redirects]]
   from = "/test"
-  to = "/.netlify/functions/basic"
+  to = "/.netlify/functions/hello"
+  status = 200
+
+[[redirects]]
+  from = "/hello"
+  to = "/.netlify/functions/hello"
   status = 200
 
 [[redirects]]
