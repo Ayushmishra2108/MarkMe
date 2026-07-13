@@ -22,6 +22,7 @@ import { AuthProvider } from "@/context/AuthContext";
 
 const queryClient = new QueryClient();
 
+// MarkMe Application Entry Point with SPA Routing Configuration
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>

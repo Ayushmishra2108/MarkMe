@@ -13,11 +13,11 @@ app.use((req, res, next) => {
 // Wrap with serverless-http
 export const handler = serverless(app, {
   binary: false,
-  request: (request, event, context) => {
+  request: (request: any, event: any, context: any) => {
     console.log("Request received:", { method: request.method, path: request.path });
     return request;
   },
-  response: (response, event, context) => {
+  response: (response: any, event: any, context: any) => {
     console.log("Response sent:", { statusCode: response.statusCode });
     return response;
   }

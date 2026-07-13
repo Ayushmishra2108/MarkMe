@@ -1,18 +1,18 @@
 [build]
   command = "npm run build:client"
   publish = "dist/spa"
-  functions = "functions"
+  functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
-  included_files = ["functions/**"]
+  included_files = ["netlify/functions/**"]
 
 # Enable functions for this site
 [context.production]
-  functions = "functions"
+  functions = "netlify/functions"
 
 [context.deploy-preview]
-  functions = "functions"
+  functions = "netlify/functions"
 
 [[redirects]]
   from = "/test"
@@ -25,16 +25,6 @@
   status = 200
 
 [[redirects]]
-  from = "/api/health"
-  to = "/api/health.html"
-  status = 200
-
-[[redirects]]
-  from = "/api/admin/users"
-  to = "/api/admin/users.html"
-  status = 200
-
-[[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/basic"
+  to = "/.netlify/functions/api"
   status = 200
